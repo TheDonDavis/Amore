@@ -62,8 +62,14 @@ export default function CheckoutForm() {
         throw new Error(data.error || "Failed to submit order");
       }
 
+      const data = await res.json();
       clearCart();
-      router.push("/order-success");
+
+      // Redirect to success page with order confirmation details
+      const successUrl = new URL("/order-success", window.location.origin);
+      successUrl.searchParams.set("orderId", data.orderId);
+      successUrl.searchParams.set("message", data.message);
+      router.push(successUrl.toString());
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
