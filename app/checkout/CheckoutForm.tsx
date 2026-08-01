@@ -13,6 +13,7 @@ export default function CheckoutForm() {
   const total = getTotal();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const [form, setForm] = useState<CustomerDetails>({
     fullName: "",
@@ -45,8 +46,11 @@ export default function CheckoutForm() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess(false);
 
     try {
+      console.log("Submitting order...", { customer: form, items, total });
+
       const res = await fetch("/api/order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -57,21 +61,28 @@ export default function CheckoutForm() {
         }),
       });
 
+      const data = await res.json();
+      console.log("Response:", res.status, data);
+
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.error || "Failed to submit order");
       }
 
-      const data = await res.json();
+      setSuccess(true);
       clearCart();
 
       // Redirect to success page with order confirmation details
-      const successUrl = new URL("/order-success", window.location.origin);
-      successUrl.searchParams.set("orderId", data.orderId);
-      successUrl.searchParams.set("message", data.message);
-      router.push(successUrl.toString());
+      setTimeout(() => {
+        const successUrl = new URL("/order-success", window.location.origin);
+        successUrl.searchParams.set("orderId", data.orderId);
+        successUrl.searchParams.set("message", data.message);
+        console.log("Redirecting to:", successUrl.toString());
+        router.push(successUrl.toString());
+      }, 1000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      const errorMsg = err instanceof Error ? err.message : "Something went wrong";
+      console.error("Order error:", errorMsg);
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -169,8 +180,11 @@ export default function CheckoutForm() {
           </div>
         </div>
 
-        {error && (
-          <p className="mt-4 text-sm text-red-700">{error}</p>
+        {error && <p className="mt-4 text-sm text-red-700">{error}</p>}
+        {success && (
+          <p className="mt-4 text-sm text-green-700">
+            ✓ Order submitted! Redirecting...
+          </p>
         )}
       </div>
 
