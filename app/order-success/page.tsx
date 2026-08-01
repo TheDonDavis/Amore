@@ -1,41 +1,86 @@
-import type { Metadata } from "next";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Order Received",
-  description: "Your order request has been received.",
-  robots: { index: false },
-};
+interface OrderConfirmation {
+  orderId: string;
+  message: string;
+}
 
 export default function OrderSuccessPage() {
+  const searchParams = useSearchParams();
+  const [confirmation, setConfirmation] = useState<OrderConfirmation | null>(
+    null
+  );
+
+  useEffect(() => {
+    const orderId = searchParams.get("orderId");
+    const message = searchParams.get("message");
+
+    if (orderId && message) {
+      setConfirmation({
+        orderId: decodeURIComponent(orderId),
+        message: decodeURIComponent(message),
+      });
+    }
+  }, [searchParams]);
+
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 py-20 text-center">
-      <div className="animate-fade-in">
-        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border border-sand">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-accent"
-          >
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-white flex items-center justify-center p-4">
+      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+        {/* Success Icon */}
+        <div className="mb-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full">
+            <svg
+              className="w-8 h-8 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
         </div>
 
-        <h1 className="font-serif text-3xl font-light tracking-wide text-ink sm:text-4xl">
-          Order Received
+        {/* Message */}
+        <h1 className="text-2xl font-light mb-2 text-gray-900">
+          Thank You for Your Order!
         </h1>
-        <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted">
-          Thank you for your order request. We&apos;ll review your selection and
-          reach out shortly to confirm availability and delivery details.
+        <p className="text-gray-600 mb-6">
+          {confirmation?.message || "Your order has been received."}
         </p>
 
+        {/* Order ID */}
+        {confirmation?.orderId && (
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <p className="text-xs text-gray-600 mb-1">Order ID</p>
+            <p className="font-mono text-sm text-gray-900 break-all">
+              {confirmation.orderId}
+            </p>
+          </div>
+        )}
+
+        {/* Info */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-left">
+          <p className="text-sm text-blue-900">
+            <span className="font-semibold">What's next?</span>
+            <br />
+            We've received your order and will review your request. You'll hear
+            from us soon at the email or phone number you provided.
+          </p>
+        </div>
+
+        {/* Return Button */}
         <Link
-          href="/#collection"
-          className="mt-10 inline-block border border-ink px-8 py-3 text-xs uppercase tracking-[0.2em] text-ink transition-all duration-300 hover:bg-ink hover:text-ivory"
+          href="/"
+          className="inline-block px-8 py-3 bg-amber-900 text-white hover:bg-amber-800 transition font-medium rounded-lg"
         >
           Continue Shopping
         </Link>
